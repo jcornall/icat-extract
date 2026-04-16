@@ -1,6 +1,7 @@
 from icat.config import Config
 import logging
 import json
+import os
 from datetime import datetime
 
 import pandas as pd
@@ -8,7 +9,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 logging.basicConfig(
-    filename=f"../logs/{timestamp}.log",
+    filename=f"{os.getcwd()}/logs/{timestamp}.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
