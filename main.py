@@ -1,8 +1,11 @@
 # src/main.py
 from icat.config import Config
-from icat.query import Query
-from queries.investigations import investigations_by_instrument, investigations_by_rb, investigations_by_user, investigations_by_start_date
-import icat.client
+from src.queries.investigations import (
+    investigations_by_instrument,
+    investigations_by_rb,
+    investigations_by_user,
+    investigations_by_start_date,
+)
 import pandas as pd
 
 
@@ -11,7 +14,6 @@ import json
 import os
 import sys
 from datetime import datetime
-
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +30,9 @@ try:
     config = Config()
     client, cfg = config.getconfig()
     client.login(cfg.auth, cfg.credentials)
-    logger.info(f"Successfully connected to {cfg.url} - ICAT version {client.apiversion}")
+    logger.info(
+        f"Successfully connected to {cfg.url} - ICAT version {client.apiversion}"
+    )
 except Exception as e:
     logger.error(f"Failed to connect to ICAT server: {e}")
     raise
@@ -84,12 +88,14 @@ def main() -> int:
         investigations_df = query_icat(investigations_by_user("Dr Dominic Fortes"))
         write_to_csv(investigations_df, "investigations_by_user.csv")
 
-        investigations_df = query_icat(investigations_by_start_date("2022-07-12 05:14:39+01:00"))
+        investigations_df = query_icat(
+            investigations_by_start_date("2022-07-12 05:14:39+01:00")
+        )
         write_to_csv(investigations_df, "investigations_by_start_date.csv")
 
         logger.info("All queries executed and results saved successfully.")
         return 0
-    
+
     except Exception as e:
         logger.error(f"An error occurred during execution: {e}")
         return 1
