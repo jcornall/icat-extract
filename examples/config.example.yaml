@@ -1,0 +1,38 @@
+icat:
+  url: https://icat.example.org
+  auth: ${ICAT_AUTH_METHOD}
+  credentials:
+    username: ${ICAT_USERNAME}
+    password: ${ICAT_PASSWORD}
+
+investigations:
+  instruments:
+    - HRPD
+  include:
+    - i.facility
+    - i.datasets
+    - i.samples.parameters
+  include_profiles:
+    minimal:
+      - i.facility
+      - i.type
+    medium:
+      - i.facility
+      - i.type
+      - i.dataCollectionInvestigations.dataCollection
+    full:
+      - i.facility
+      - i.type
+      - i.dataCollectionInvestigations.dataCollection
+      - i.samples.parameters
+      - i.investigationInstruments.instrument
+      - i.studyInvestigations.study
+      - i.shifts
+      - i.fundingReferences
+      - i.investigationUsers.user
+      - i.keywords
+      - i.datasets
+
+output:
+  lake_root: /srv/data-lake
+  
