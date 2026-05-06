@@ -1,33 +1,53 @@
+from icat_extract.config import resolve_secrets
+
+from pathlib import Path
+
 from icat import Client
-from icat.config import Config
 import pandas as pd
-import os
 import logging
-from datetime import datetime
 
 
 logger = logging.getLogger(__name__)
 
 
-def get_icat_client() -> Client:
-    cfg = Config()
-    client = Client(cfg.url)
-    client.login(cfg.auth, cfg.credentials)
-    return client
-
-
-def query_icat(query: str) -> pd.DataFrame:
+def get_icat_client(icat_config: dict) -> Client:
     """
-    Queries the ICAT server and returns results as a pandas DataFrame.
+    Establishes a connection to the ICAT server using the provided configuration.
+    Parameters:
+    - icat_config: A dictionary containing the ICAT server configuration, including:
+        - url: The URL of the ICAT server
+        - auth: The authentication method (e.g., "basic" or "oauth")
+        - credentials: A dictionary containing the necessary credentials for authentication
+    Returns:
+    - An authenticated Client instance connected to the ICAT server
+    """
+
+    try:
+        client = Client(icat_config["url"])
+        auth = icat_config.get("auth")
+        client.login(auth, icat_config["credentials"])
+        logger.info(
+            f"Successfully connected to {icat_config['url']} - ICAT version {client.apiversion}"
+        )
+        return client
+    except Exception as e:
+        logger.error(f"Failed to connect to ICAT server: {e}")
+        raise
+
+
+def query_icat(query: str, icat_config: dict) -> pd.DataFrame:
+    """
+    Executes a query against the ICAT server and returns the results as a DataFrame.
 
     Parameters:
-    query (str): The ICAT query to execute.
+    - query: The ICAT query string to execute
+    - icat_config: A dictionary containing the ICAT server configuration (see get_icat_client)
 
     Returns:
-    pd.DataFrame: A DataFrame containing the query results.
+    - A pandas DataFrame containing the query results
     """
     try:
-        client = get_icat_client()
+        client = get_icat_client(icat_config)
         results = client.search(query)
         logger.info(f"Query executed successfully: {query}")
         logger.info(f"Number of records retrieved: {len(results)}")
@@ -37,17 +57,19 @@ def query_icat(query: str) -> pd.DataFrame:
         raise
 
 
-def write_to_csv(df: pd.DataFrame, filename: str) -> None:
+def write_to_csv(df: pd.DataFrame, output_path: Path) -> None:
     """
-    Writes a DataFrame to a CSV file.
+    Writes a DataFrame to a CSV file at the specified output path.
+    If the output directory does not exist, it will be created.
 
     Parameters:
-    df (pd.DataFrame): The DataFrame to write.
-    filename (str): The name of the CSV file to create.
+    - df: The pandas DataFrame to write to CSV
+    - output_path: The file path where the CSV should be saved
     """
     try:
-        df.to_csv(f"{os.getcwd()}/results/{filename}", index=False)
-        logger.info(f"Data successfully written to {filename}")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(output_path, index=False)
+        logger.info("Wrote %d rows to %s", len(df), output_path)
     except Exception as e:
-        logger.error(f"Failed to write data to {filename}: {e}")
+        logger.error(f"Failed to write data to {output_path}: {e}")
         raise
